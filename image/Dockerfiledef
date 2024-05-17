@@ -1,0 +1,48 @@
+# variable environnement
+ARG VALUE_PHP_VERSION
+ARG DEF_PHP_VERSION=${VALUE_PHP_VERSION:-"8.3.7RC1-fpm"}
+ARG VALUE_COMPOSER_VERSION
+ARG DEF_COMPOSER_VERSION=${VALUE_COMPOSER_VERSION:-"2.7.4"}
+# config install composer
+FROM composer:${DEF_COMPOSER_VERSION} AS compvers
+
+# config install php
+FROM php:${DEF_PHP_VERSION}
+
+ARG VALUE_PHPDOC_VERSION
+ENV DEF_PHPDOC_VERSION=${VALUE_PHPDOC_VERSION:-"latest"}
+
+ARG PHP_FOLDER_PROJECT
+ENV PHP_FOLDER_PROJECT=${PHP_FOLDER_PROJECT:-"/usr/local/apache2/www/"}
+ARG PHP_FOLDER_DOC
+ENV PHP_FOLDER_DOC=${PHP_FOLDER_DOC:-"/usr/local/apache2/doc/"}
+ENV PHP_FOLDER_LOG="/var/log/docker/php/"
+ENV PHP_FOLDER_LOG_XDEBUG="/var/log/docker/xdebug/"
+ENV PHP_FOLDER_TMP="/var/tmp/docker/php/"
+ENV PHP_FOLDER_INIT="/var/docker/php/"
+ENV CRON_FOLDER_INIT="/var/docker/cron/"
+ENV PHP_FOLDER_INIT_DATA="/docker-entrypoint-initdata.d/"
+
+# Install composer  
+COPY --from=compvers /usr/bin/composer /usr/bin/composer  
+RUN mkdir /var/composer  
+ENV COMPOSER_HOME /var/composer  
+ENV COMPOSER_ALLOW_SUPERUSER 1 
+
+RUN mkdir -p ${PHP_FOLDER_PROJECT}
+RUN mkdir -p ${PHP_FOLDER_DOC}
+RUN mkdir -p ${PHP_FOLDER_INIT}
+RUN mkdir -p ${PHP_FOLDER_LOG}
+RUN mkdir -p ${PHP_FOLDER_LOG_XDEBUG}
+RUN mkdir -p ${PHP_FOLDER_INIT}
+RUN mkdir -p ${CRON_FOLDER_INIT}
+RUN mkdir -p ${PHP_FOLDER_INIT_DATA}
+
+RUN pear install phpDocumentor/phpDocumentor
+#:${DEF_PHPDOC_VERSION}
+
+ENTRYPOINT ["docker-php-entrypoint"]
+
+WORKDIR ${PHP_FOLDER_DOC}
+
+CMD ["php-fpm"]
