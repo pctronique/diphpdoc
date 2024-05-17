@@ -1,1 +1,3 @@
 # diphpdoc
+
+phpdoc --title title
